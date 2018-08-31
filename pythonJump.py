@@ -3,17 +3,20 @@ import arcade
 
 class MyGame(arcade.Window):
 	def __init__(self, width, height):
-		super().__init__(width, height, "Game")
+		super().__init__(width, height, "Not Game")
 		arcade.set_background_color(arcade.color.BLUE)
 		self.player = [[0, 10], [0, 0]]
 		self.w_pressed = False
 		self.a_pressed = False
 		self.d_pressed = False
-		self.friction = 0.4
-		self.gravity = 0.5
-		self.air_resistance_modifier = 3
-		self.jump_height = 25
-		self.speed = 1
+		self.friction = 0.3
+		self.gravity = 0.7
+		self.air_resistance_modifier = 4
+		self.jump_height = 50
+		self.speed = 0.8
+		self.max_speed = 30
+		self.air_jumps = 0
+		self.max_air_jumps = 2
 
 	def on_draw(self):
 		arcade.start_render()
@@ -22,8 +25,7 @@ class MyGame(arcade.Window):
 		arcade.draw_rectangle_filled(500, 5, 1000, 10, arcade.color.GREEN)
 
 	def update(self, deltatime):
-		if self.w_pressed and self.player[0][1] == 10:
-			self.player[1][1] += self.jump_height
+
 		if self.a_pressed:
 			if self.player[0][1] > 10:
 				self.player[1][0] += -self.speed / 3
@@ -38,10 +40,10 @@ class MyGame(arcade.Window):
 		self.player[0][0] += self.player[1][0]
 		self.player[0][1] += self.player[1][1]
 
-		if self.player[1][0] > 10:
-			self.player[1][0] = 10
-		elif self.player[1][0] < -10:
-			self.player[1][0] = -10
+		if self.player[1][0] > self.max_speed:
+			self.player[1][0] = self.max_speed
+		elif self.player[1][0] < -self.max_speed:
+			self.player[1][0] = -self.max_speed
 
 		if self.player[1][1] > 10:
 			self.player[1][1] = 10
@@ -76,9 +78,21 @@ class MyGame(arcade.Window):
 				if self.player[1][0] < 0:
 					self.player[1][0] = 0
 
+		if self.player[0][0] < 0:
+			self.player[0][0] = 0
+			self.player[1][0] = -self.player[1][0]
+		elif self.player[0][0] > 950:
+			self.player[0][0] = 950
+			self.player[1][0] = -self.player[1][0]
+
 	def on_key_press(self, key, modifier):
 		if key == ord("w") or key == ord(" "):
-			self.w_pressed = True
+			if self.player[0][1] == 10 or self.player[0][0] == 0 or self.player[0][0] == 950:
+				self.player[1][1] += self.jump_height
+				self.air_jumps = self.max_air_jumps
+			elif self.air_jumps > 0:
+				self.air_jumps += -1
+				self.player[1][1] += self.jump_height
 
 		if key == ord("a"):
 			self.a_pressed = True
