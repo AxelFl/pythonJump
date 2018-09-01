@@ -3,7 +3,7 @@ import arcade
 
 class MyGame(arcade.Window):
 	def __init__(self, width, height):
-		super().__init__(width, height, "Not Game")
+		super().__init__(width, height, "Not Game", resizable=True)
 		arcade.set_background_color(arcade.color.BLUE)
 		self.width = width
 		self.height = height
@@ -98,8 +98,8 @@ class MyGame(arcade.Window):
 		if self.player[0][0] < 0:
 			self.player[0][0] = 0
 			self.player[1][0] = -self.player[1][0]
-		elif self.player[0][0] > 950:
-			self.player[0][0] = 950
+		elif self.player[0][0] > self.width - 50:
+			self.player[0][0] = self.width - 50
 			self.player[1][0] = -self.player[1][0]
 
 	def on_key_press(self, key, modifier):
@@ -112,7 +112,7 @@ class MyGame(arcade.Window):
 
 			# If we allow wall jumping, wall jump and don't reset air jumps
 			if self.allow_wall_jumping:
-				if self.player[0][0] == 0 or self.player[0][0] == 950:
+				if self.player[0][0] == 0 or self.player[0][0] == self.width - 50:
 					self.player[1][1] += self.jump_height
 
 			# If you have air jumps, use one and jump
@@ -133,6 +133,11 @@ class MyGame(arcade.Window):
 
 		if key == ord("d"):
 			self.d_pressed = False
+
+	def on_resize(self, width, height):
+		super().on_resize(width, height)
+		self.width = width
+		self.height = height
 
 
 game = MyGame(1000, 500)
