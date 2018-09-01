@@ -15,13 +15,14 @@ class MyGame(arcade.Window):
 		self.friction = 0.3  # How much per update you slow down on the ground
 		self.gravity = 0.7  # How much you get pulled down per update
 		self.air_resistance_modifier = 4  # Division, higher is less resistance
-		self.jump_height = 20  # Speed up when you jump
+		self.jump_height = 15  # Speed up when you jump
 		self.speed = 0.8  # Speed increase per update when you hold left or right
 		self.max_speed = 30  # Max speed
 		self.air_jumps = 0  # Temp, not used in set-up
-		self.max_air_jumps = 1  # Number of air jumps you get in total
+		self.max_air_jumps = 0  # Number of air jumps you get in total
 		self.max_vertical_speed = 10  # Max vertical speed
-		self.allow_wall_jumping = True  # Allow wall jumping or not
+		self.wall_jumps = 0
+		self.max_wall_jumps = 1
 
 	def on_draw(self):
 		arcade.start_render()
@@ -55,11 +56,6 @@ class MyGame(arcade.Window):
 			self.player[1][0] = self.max_speed
 		elif self.player[1][0] < -self.max_speed:
 			self.player[1][0] = -self.max_speed
-
-		# Limits vertical speed up, going to think about this one
-		# TODO Remove or think what to do with it
-		if self.player[1][1] > self.max_vertical_speed:
-			self.player[1][1] = self.max_vertical_speed
 
 		# If the player is above ground, draw them down with gravity
 		if self.player[0][1] > 10:
@@ -104,16 +100,17 @@ class MyGame(arcade.Window):
 
 	def on_key_press(self, key, modifier):
 		if key == ord("w") or key == ord(" "):
-			# If the player is on the ground, launch them and reset the air jumps
+			# If the player is on the ground, launch them and reset the air and wall jumps
 			# Not tracked if held because it's worse
 			if self.player[0][1] == 10:
 				self.player[1][1] += self.jump_height
 				self.air_jumps = self.max_air_jumps
+				self.wall_jumps = self.max_wall_jumps
 
-			# If we allow wall jumping, wall jump and don't reset air jumps
-			if self.allow_wall_jumping:
-				if self.player[0][0] == 0 or self.player[0][0] == self.width - 50:
-					self.player[1][1] += self.jump_height
+			# If you have wall jumps left and is touching a wall remove one jump
+			elif (self.player[0][0] == 0 or self.player[0][0] == self.width - 50) and self.wall_jumps > 0:
+				self.wall_jumps += -1
+				self.player[1][1] += self.jump_height
 
 			# If you have air jumps, use one and jump
 			elif self.air_jumps > 0:
