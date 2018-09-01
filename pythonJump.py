@@ -5,48 +5,61 @@ class MyGame(arcade.Window):
 	def __init__(self, width, height):
 		super().__init__(width, height, "Not Game")
 		arcade.set_background_color(arcade.color.BLUE)
+		self.width = width
+		self.height = height
+
 		self.player = [[0, 10], [0, 0]]
-		self.w_pressed = False
 		self.a_pressed = False
 		self.d_pressed = False
-		self.friction = 0.3
-		self.gravity = 0.7
-		self.air_resistance_modifier = 4
-		self.jump_height = 50
-		self.speed = 0.8
-		self.max_speed = 30
-		self.air_jumps = 0
-		self.max_air_jumps = 2
+
+		self.friction = 0.3  # How much per update you slow down on the ground
+		self.gravity = 0.7  # How much you get pulled down per update
+		self.air_resistance_modifier = 4  # Division, higher is less resistance
+		self.jump_height = 20  # Speed up when you jump
+		self.speed = 0.8  # Speed increase per update when you hold left or right
+		self.max_speed = 30  # Max speed
+		self.air_jumps = 0  # Temp, not used in set-up
+		self.max_air_jumps = 1  # Number of air jumps you get in total
+		self.max_vertical_speed = 10  # Max vertical speed
+		self.allow_wall_jumping = True  # Allow wall jumping or not
 
 	def on_draw(self):
 		arcade.start_render()
 
+		# Draw the player
 		arcade.draw_rectangle_filled(self.player[0][0] + 25, self.player[0][1] + 25, 50, 50, arcade.color.RED)
-		arcade.draw_rectangle_filled(500, 5, 1000, 10, arcade.color.GREEN)
 
-	def update(self, deltatime):
+		# Draw the grass at the bottom
+		arcade.draw_rectangle_filled(self.width / 2, 5, self.width, 10, arcade.color.GREEN)
+
+	def update(self, delta_time):
 
 		if self.a_pressed:
-			if self.player[0][1] > 10:
+			if self.player[0][1] > 10:  # If in the air add a third of the speed instead
 				self.player[1][0] += -self.speed / 3
 			else:
 				self.player[1][0] += -self.speed
+
 		if self.d_pressed:
-			if self.player[0][1] > 10:
+			if self.player[0][1] > 10:  # If in the air add a third of the speed instead
 				self.player[1][0] += self.speed / 3
 			else:
 				self.player[1][0] += self.speed
 
+		# Increase the speeds in both directions
 		self.player[0][0] += self.player[1][0]
 		self.player[0][1] += self.player[1][1]
 
+		# If your speed is higher than the max speed, set it to the max speed
 		if self.player[1][0] > self.max_speed:
 			self.player[1][0] = self.max_speed
 		elif self.player[1][0] < -self.max_speed:
 			self.player[1][0] = -self.max_speed
 
-		if self.player[1][1] > 10:
-			self.player[1][1] = 10
+		# Limits vertical speed up, going to think about this one
+		# TODO Remove or think what to do with it
+		if self.player[1][1] > self.max_vertical_speed:
+			self.player[1][1] = self.max_vertical_speed
 
 		# If the player is above ground, draw them down with gravity
 		if self.player[0][1] > 10:
@@ -57,6 +70,7 @@ class MyGame(arcade.Window):
 			self.player[1][1] = 0
 			self.player[0][1] = 10
 
+		# if you are on the ground add friction in different directions
 		if self.player[0][1] == 10:
 			if self.player[1][0] < 0:
 				self.player[1][0] += self.friction
@@ -67,6 +81,8 @@ class MyGame(arcade.Window):
 				self.player[1][0] += -self.friction
 				if self.player[1][0] < 0:
 					self.player[1][0] = 0
+
+		# Otherwise you are in the air and add air resistance
 		else:
 			if self.player[1][0] < 0:
 				self.player[1][0] += self.friction / self.air_resistance_modifier
@@ -78,6 +94,7 @@ class MyGame(arcade.Window):
 				if self.player[1][0] < 0:
 					self.player[1][0] = 0
 
+		# If past the wall, set them to the wall and reverse x speed
 		if self.player[0][0] < 0:
 			self.player[0][0] = 0
 			self.player[1][0] = -self.player[1][0]
@@ -87,13 +104,23 @@ class MyGame(arcade.Window):
 
 	def on_key_press(self, key, modifier):
 		if key == ord("w") or key == ord(" "):
-			if self.player[0][1] == 10 or self.player[0][0] == 0 or self.player[0][0] == 950:
+			# If the player is on the ground, launch them and reset the air jumps
+			# Not tracked if held because it's worse
+			if self.player[0][1] == 10:
 				self.player[1][1] += self.jump_height
 				self.air_jumps = self.max_air_jumps
+
+			# If we allow wall jumping, wall jump and don't reset air jumps
+			if self.allow_wall_jumping:
+				if self.player[0][0] == 0 or self.player[0][0] == 950:
+					self.player[1][1] += self.jump_height
+
+			# If you have air jumps, use one and jump
 			elif self.air_jumps > 0:
 				self.air_jumps += -1
 				self.player[1][1] += self.jump_height
 
+		# Allows me to track if button is pressed, to make smooth movement
 		if key == ord("a"):
 			self.a_pressed = True
 
@@ -101,10 +128,9 @@ class MyGame(arcade.Window):
 			self.d_pressed = True
 
 	def on_key_release(self, key, modifiers):
-		if key == ord("w") or key == ord(" "):
-			self.w_pressed = False
 		if key == ord("a"):
 			self.a_pressed = False
+
 		if key == ord("d"):
 			self.d_pressed = False
 
