@@ -9,8 +9,7 @@ class MyGame(arcade.Window):
 		self.height = height
 
 		self.player = [[0, 10], [0, 0]]
-		self.a_pressed = False
-		self.d_pressed = False
+		self.pressed = {"a": False, "d": False}
 
 		self.friction = 0.3  # How much per update you slow down on the ground
 		self.gravity = 0.7  # How much you get pulled down per update
@@ -35,13 +34,13 @@ class MyGame(arcade.Window):
 
 	def update(self, delta_time):
 
-		if self.a_pressed:
+		if self.pressed["a"]:
 			if self.player[0][1] > 10:  # If in the air add a third of the speed instead
 				self.player[1][0] += -self.speed / 3
 			else:
 				self.player[1][0] += -self.speed
 
-		if self.d_pressed:
+		if self.pressed["d"]:
 			if self.player[0][1] > 10:  # If in the air add a third of the speed instead
 				self.player[1][0] += self.speed / 3
 			else:
@@ -118,18 +117,12 @@ class MyGame(arcade.Window):
 				self.player[1][1] += self.jump_height
 
 		# Allows me to track if button is pressed, to make smooth movement
-		if key == ord("a"):
-			self.a_pressed = True
-
-		if key == ord("d"):
-			self.d_pressed = True
+		# Tracks all buttons to allow future expansion
+		self.pressed[chr(key)] = True
 
 	def on_key_release(self, key, modifiers):
-		if key == ord("a"):
-			self.a_pressed = False
-
-		if key == ord("d"):
-			self.d_pressed = False
+		# Tracks all buttons to allow future expansion
+		self.pressed[chr(key)] = False
 
 	def on_resize(self, width, height):
 		super().on_resize(width, height)
